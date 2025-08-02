@@ -22,7 +22,7 @@ To run this application, you only need a modern web browser and a Gemini API key
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/royans/GeminiLiveSupport.git](https://github.com/royans/GeminiLiveSupport.git)
+    git clone https://github.com/royans/GeminiLiveSupport.git
     cd GeminiLiveSupport
     ```
 
