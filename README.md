@@ -2,8 +2,6 @@
 
 Welcome to the Technical Support Assistant, a powerful, real-time multimodal chat demo application powered by the Google Gemini API. This application is currently setup to serve as an expert on Google Workspace products, allowing users to interact with it through voice, screen sharing, and camera input for a seamless support experience.
 
-![App Screenshot](image_dff68f.png) 
-
 ## 🚀 Features
 
 * **Real-time Multimodal Interaction:** Engage in a live conversation with Gemini using your microphone for voice input.
