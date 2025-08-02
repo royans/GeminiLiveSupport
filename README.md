@@ -1,6 +1,8 @@
-# GeminiLiveSupport
+# Technical Support Assistant [demo]
 
-Welcome to the Technical Support Assistant, a powerful, real-time multimodal chat demo application powered by the Google Gemini API. This application is currently setup to serve as an expert on Google Workspace products, allowing users to interact with it through voice, screen sharing, and camera input for a seamless support experience.
+Welcome to the Technical Support Assistant, a powerful, real-time multimodal chat application powered by the Google Gemini API. This application serves as an expert on Google Workspace products, allowing users to interact with it through voice, screen sharing, and camera input for a seamless support experience.
+
+![App Screenshot](image_dff68f.png) 
 
 ## 🚀 Features
 
@@ -22,7 +24,7 @@ To run this application, you only need a modern web browser and a Gemini API key
 
 1.  **Clone the Repository:**
     ```bash
-    git clone [https://github.com/royans/GeminiLiveSupport/link.git](https://github.com/royans/GeminiLiveSupport/link.git)
+    git clone [https://github.com/royans/GeminiLiveSupport.git](https://github.com/royans/GeminiLiveSupport.git)
     cd GeminiLiveSupport
     ```
 
@@ -42,12 +44,12 @@ To run this application, you only need a modern web browser and a Gemini API key
 
 ## 🙏 Acknowledgements
 
-This application was built upon the great work of others in the open-source community. It simplifies and combines concepts from two primary sources:
+This app heavily borrows from 2 different sources:
 
-* **[Gemini 2.0 Flash Multimodal Live API Client](https://github.com/ViaAnthroposBenevolentia/gemini-2-live-api-demo)** by ChrisKyle.
-* **[live-api-web-console](https://github.com/google-gemini/live-api-web-console)** by the Google-Gemini team.
+* **[Gemini 2.0 Flash Multimodal Live API Client](https://github.com/ViaAnthroposBenevolentia/gemini-2-live-api-demo?tab=readme-ov-file)** was created by ChrisKyle as a simpler version of
+* **[live-api-web-console](https://github.com/google-gemini/live-api-web-console)**, which was created by the Google-Gemini team. The version in this build is a further simplification of what Chris started.
 
-Special thanks to **Nishanth Tharakan** for his invaluable help in getting this project working.
+Special thanks to **[Nishanth Tharakan](https://qerty2006.github.io/about/)** who helped figure out how to get this whole thing to work.
 
 ## 📄 License
 
