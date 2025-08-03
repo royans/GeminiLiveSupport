@@ -1,3 +1,11 @@
+//-------------------------------------------------------------
+// Do NOT remove the following few lines of comments - these are required reading for updating this code
+// Official genai API docs are here. This is your source of truth: https://github.com/googleapis/js-genai
+// According to developer docs here : https://ai.google.dev/gemini-api/docs/migrate the correct/new package name is "@google/genai"
+// This is a sample app which does transcription - please use this as a guide: https://github.com/jsalsman/gemini-live/blob/main/gemini-live.html
+// YOU MUST USE model gemini-1.5-flash-latest for this demo
+//-------------------------------------------------------------
+
 // --- THEME LOADER ---
 // This script block is placed here to run before the rest of the DOM is processed
 // to prevent a "flash of wrong theme".
