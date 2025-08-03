@@ -10,9 +10,9 @@
 // This script block is placed here to run before the rest of the DOM is processed
 // to prevent a "flash of wrong theme".
 (function () {
-  const savedTheme = localStorage.getItem("theme") || "dark";
-  if (savedTheme === "light") {
-    document.body.classList.add("light-theme");
+  const savedTheme = localStorage.getItem("theme") || "light"; // Default to light
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark-theme");
   }
 })();
 
@@ -96,39 +96,56 @@ const getWebsocketUrl = () =>
     "apiKey"
   )}`;
 const MODEL_SAMPLE_RATE = parseInt(localStorage.getItem("sampleRate")) || 24000;
-const getConfig = () => ({
-  model: "models/gemini-2.0-flash-exp",
-  tools: [{ googleSearchRetrieval: {} }],
-  generationConfig: {
-    temperature: parseFloat(localStorage.getItem("temperature")) || 0.9,
-    top_p: parseFloat(localStorage.getItem("top_p")) || 1.0,
-    top_k: parseInt(localStorage.getItem("top_k")) || 32,
-    responseModalities: "audio",
-    speechConfig: {
-      languageCode: localStorage.getItem("language") || "en-US",
-      voiceConfig: {
-        prebuiltVoiceConfig: {
-          voiceName: localStorage.getItem("voiceName") || "Puck",
+const getConfig = () => {
+  let systemInstructions =
+    localStorage.getItem("systemInstructions") || DEFAULT_SYSTEM_INSTRUCTION;
+  const languageCode = localStorage.getItem("language") || "en-US";
+
+  const languageMap = {
+    "es-ES": "Spanish",
+    "fr-FR": "French",
+    "de-DE": "German",
+    "ja-JP": "Japanese",
+    "hi-IN": "Hindi",
+  };
+
+  if (languageCode !== "en-US" && languageMap[languageCode]) {
+    const languageName = languageMap[languageCode];
+    systemInstructions += `\n\nPlease make sure you are talking to the user using ${languageName} language which is what the customer requested.`;
+  }
+
+  return {
+    model: "models/gemini-2.0-flash-exp",
+    tools: [{ googleSearchRetrieval: {} }],
+    generationConfig: {
+      temperature: parseFloat(localStorage.getItem("temperature")) || 0.9,
+      top_p: parseFloat(localStorage.getItem("top_p")) || 1.0,
+      top_k: parseInt(localStorage.getItem("top_k")) || 32,
+      responseModalities: "audio",
+      speechConfig: {
+        languageCode: languageCode,
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: localStorage.getItem("voiceName") || "Puck",
+          },
         },
       },
     },
-  },
-  systemInstruction: {
-    parts: [
-      {
-        text:
-          localStorage.getItem("systemInstructions") ||
-          DEFAULT_SYSTEM_INSTRUCTION,
-      },
+    systemInstruction: {
+      parts: [
+        {
+          text: systemInstructions,
+        },
+      ],
+    },
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
     ],
-  },
-  safetySettings: [
-    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-  ],
-});
+  };
+};
 
 // 4. WEBSOCKET CLIENT
 class GeminiWebsocketClient extends EventEmitter {
@@ -332,7 +349,9 @@ class AudioVisualizer {
     this.analyser.getByteTimeDomainData(this.dataArray);
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     this.ctx.lineWidth = 2;
-    this.ctx.strokeStyle = "rgb(74, 144, 226)";
+    this.ctx.strokeStyle = document.body.classList.contains("dark-theme")
+      ? "#e8f0fe"
+      : "#1a73e8";
     this.ctx.beginPath();
     const sliceWidth = (this.canvas.width * 1.0) / this.bufferLength;
     let x = 0;
@@ -462,34 +481,42 @@ class SettingsManager {
   }
   render() {
     this.container.innerHTML = `
-        <div class="settings-grid">
-            <div class="settings-group">
-                <label for="apiKey">Gemini API Key</label>
-                <input type="password" id="apiKey" placeholder="Enter your Gemini API key">
+        <div class="settings-header">
+            <button id="settingsSaveBtn" class="settings-save-btn">Save Settings</button>
+        </div>
+        <div class="settings-section">
+            <h3>Configuration</h3>
+            <div class="settings-grid">
+                <div class="settings-group">
+                    <label for="apiKey">Gemini API Key</label>
+                    <input type="password" id="apiKey" placeholder="Enter your Gemini API key">
+                </div>
+                <div class="settings-group">
+                    <label for="language">Language</label>
+                    <select id="language">
+                        <option value="en-US">English (US)</option>
+                        <option value="es-ES">Spanish (Spain)</option>
+                        <option value="fr-FR">French (France)</option>
+                        <option value="de-DE">German (Germany)</option>
+                        <option value="ja-JP">Japanese (Japan)</option>
+                        <option value="hi-IN">Hindi (India)</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <label for="voice">Voice</label>
+                    <select id="voice">
+                        <option value="Puck">Puck</option>
+                        <option value="Charon">Charon</option>
+                        <option value="Kore">Kore</option>
+                        <option value="Fenrir">Fenrir</option>
+                        <option value="Aoede">Aoede</option>
+                    </select>
+                </div>
             </div>
-            <div class="settings-group">
-                <label for="language">Language</label>
-                <select id="language">
-                    <option value="en-US">English (US)</option>
-                    <option value="es-ES">Spanish (Spain)</option>
-                    <option value="fr-FR">French (France)</option>
-                    <option value="de-DE">German (Germany)</option>
-                    <option value="ja-JP">Japanese (Japan)</option>
-                    <option value="hi-IN">Hindi (India)</option>
-                </select>
-            </div>
-            <div class="settings-group">
-                <label for="voice">Voice</label>
-                <select id="voice">
-                    <option value="Puck">Puck</option>
-                    <option value="Charon">Charon</option>
-                    <option value="Kore">Kore</option>
-                    <option value="Fenrir">Fenrir</option>
-                    <option value="Aoede">Aoede</option>
-                </select>
-            </div>
-            <div class="settings-section">
-                <h3>Model Parameters</h3>
+        </div>
+        <div class="settings-section">
+            <h3>Model Parameters</h3>
+            <div class="settings-grid">
                 <div class="slider-group">
                     <label for="temperature">Temperature</label>
                     <input type="range" id="temperature" min="0" max="2" step="0.1">
@@ -511,8 +538,10 @@ class SettingsManager {
                     <span id="sampleRateValue"></span>
                 </div>
             </div>
-            <div class="settings-section">
-                <h3>Media Quality</h3>
+        </div>
+        <div class="settings-section">
+            <h3>Media Quality</h3>
+            <div class="settings-grid">
                 <div class="slider-group">
                     <label for="fps">Capture FPS</label>
                     <input type="range" id="fps" min="1" max="10" step="1">
@@ -529,21 +558,11 @@ class SettingsManager {
                     <span id="qualityValue"></span>
                 </div>
             </div>
-            <div class="settings-group full-width">
-                <label for="systemInstructions">System Instructions</label>
-                <textarea id="systemInstructions" rows="6"></textarea>
-            </div>
         </div>
-        <div class="settings-footer">
-            <div class="theme-switch-wrapper">
-                <span>Dark</span>
-                <label class="theme-switch">
-                    <input type="checkbox" id="theme-toggle">
-                    <span class="slider round"></span>
-                </label>
-                <span>Light</span>
-            </div>
-            <button id="settingsSaveBtn" class="settings-save-btn">Save and Reload</button>
+        <hr>
+        <div class="settings-group">
+            <label for="systemInstructions">System Instructions</label>
+            <textarea id="systemInstructions" rows="12"></textarea>
         </div>
         `;
   }
@@ -569,21 +588,23 @@ class SettingsManager {
       resizeWidthValue: this.container.querySelector("#resizeWidthValue"),
       qualityInput: this.container.querySelector("#quality"),
       qualityValue: this.container.querySelector("#qualityValue"),
-      themeToggle: this.container.querySelector("#theme-toggle"),
       saveBtn: this.container.querySelector("#settingsSaveBtn"),
     };
   }
   setupEventListeners() {
     this.elements.saveBtn.addEventListener("click", () => {
       this.saveSettings();
-      window.location.reload();
+      // Using a custom alert for consistency
+      document.dispatchEvent(
+        new CustomEvent("show-alert", {
+          detail: "Settings saved! Page will reload.",
+        })
+      );
+      setTimeout(() => window.location.reload(), 2000);
     });
     Object.values(this.elements).forEach((el) => {
       if (el.type === "range")
         el.addEventListener("input", () => this.updateDisplayValues());
-    });
-    this.elements.themeToggle.addEventListener("change", (e) => {
-      document.body.classList.toggle("light-theme", e.target.checked);
     });
   }
   loadSettings() {
@@ -604,8 +625,7 @@ class SettingsManager {
     this.elements.resizeWidthInput.value =
       localStorage.getItem("resizeWidth") || "640";
     this.elements.qualityInput.value = localStorage.getItem("quality") || "0.7";
-    this.elements.themeToggle.checked =
-      localStorage.getItem("theme") === "light";
+
     this.updateDisplayValues();
   }
   saveSettings() {
@@ -623,10 +643,6 @@ class SettingsManager {
     localStorage.setItem("fps", this.elements.fpsInput.value);
     localStorage.setItem("resizeWidth", this.elements.resizeWidthInput.value);
     localStorage.setItem("quality", this.elements.qualityInput.value);
-    localStorage.setItem(
-      "theme",
-      this.elements.themeToggle.checked ? "light" : "dark"
-    );
   }
   updateDisplayValues() {
     this.elements.sampleRateValue.textContent = `${this.elements.sampleRateInput.value} Hz`;
@@ -774,14 +790,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const agent = new GeminiAgent();
   const settingsManager = new SettingsManager("settings-content");
 
-  const mainContainer = document.querySelector(".main-container");
-  const adjustContainerHeight = () => {
-    const containerWidth = mainContainer.offsetWidth;
-    mainContainer.style.height = `${containerWidth * 0.6}px`;
-  };
-
-  adjustContainerHeight();
-  window.addEventListener("resize", adjustContainerHeight);
+  // Make showAlert globally accessible for the settings manager
+  document.addEventListener("show-alert", (e) => agent.showAlert(e.detail));
 
   const tabs = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
@@ -818,6 +828,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("get-started-btn").addEventListener("click", () => {
     document.querySelector('.tab-btn[data-tab="live-content"]').click();
+  });
+
+  // Theme Toggle Logic
+  const themeToggle = document.getElementById("theme-toggle");
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    const isDarkMode = document.body.classList.contains("dark-theme");
+    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
   });
 
   // Live Tab Controls
