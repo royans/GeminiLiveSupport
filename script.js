@@ -10,7 +10,8 @@
 // This script block is placed here to run before the rest of the DOM is processed
 // to prevent a "flash of wrong theme".
 (function () {
-  const savedTheme = localStorage.getItem("theme") || "light"; // Default to light
+  // MODIFIED for request (1): Default to dark theme
+  const savedTheme = localStorage.getItem("theme") || "dark";
   if (savedTheme === "dark") {
     document.body.classList.add("dark-theme");
   }
@@ -803,14 +804,55 @@ document.addEventListener("DOMContentLoaded", () => {
     tabContents.forEach((c) => c.classList.toggle("active", c.id === targetId));
   };
 
+  // --- NEW LOGIC START for requests (2) and (4) ---
+  // Handle API Key instruction on Home page
+  const apiKey = localStorage.getItem("apiKey");
+  const apiKeyInstructionLi = document.getElementById("api-key-instruction");
+  const instructionsList = document.getElementById("instructions-list");
+
+  if (!apiKey || apiKey === "null" || apiKey.trim() === "") {
+    apiKeyInstructionLi.innerHTML = `
+          <span>Enter your Gemini API Key. You can get one from <a href="https://ai.google.dev/gemini-api/docs/api-key" target="_blank" rel="noopener noreferrer">Google AI Studio</a>.</span>
+          <div class="api-key-input-container">
+              <input type="password" id="home-api-key-input" placeholder="Enter your Gemini API key">
+              <button id="home-api-key-save">Save</button>
+          </div>
+      `;
+    document
+      .getElementById("home-api-key-save")
+      .addEventListener("click", () => {
+        const keyInput = document.getElementById("home-api-key-input");
+        if (keyInput.value) {
+          localStorage.setItem("apiKey", keyInput.value);
+          agent.showAlert("API Key saved! You can now go to the Live tab.");
+          instructionsList.removeChild(apiKeyInstructionLi);
+          // Also update the key in the settings tab for consistency
+          settingsManager.elements.apiKeyInput.value = keyInput.value;
+        } else {
+          agent.showAlert("Please enter an API key.");
+        }
+      });
+  } else {
+    instructionsList.removeChild(apiKeyInstructionLi);
+  }
+
+  // Make logo clickable
+  document.getElementById("logo-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    switchTab("home-content");
+  });
+  // --- NEW LOGIC END ---
+
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const targetId = tab.dataset.tab;
 
       if (targetId === "live-content") {
         if (!localStorage.getItem("apiKey")) {
-          agent.showAlert("Please set your Gemini API Key in Settings first.");
-          switchTab("settings-content");
+          agent.showAlert(
+            "Please set your Gemini API Key in Settings or on the Home page first."
+          );
+          switchTab("home-content");
           return;
         }
         if (!agent.connected) {
